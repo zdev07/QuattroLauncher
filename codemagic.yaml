@@ -9,7 +9,7 @@ workflows:
         # We define a custom NDK path that we KNOW exists
         NDK_VERSION: "25.2.9519653"
         ANDROID_NDK_HOME: $HOME/android-ndk-custom
-        scripts:
+    scripts:
       - name: Setup NDK and Build
         script: | 
           # 1. Clean up any previous failed attempts
