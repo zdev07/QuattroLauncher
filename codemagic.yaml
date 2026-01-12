@@ -34,7 +34,7 @@ workflows:
       - name: Build Debug APK
         script: | 
           # We pass the NDK path directly into the gradle command to override everything
-          ./gradlew assembleGplay \
+          ./gradlew assembleRelease \
             -Pandroid.builder.sdkDownload=false \
             -Dorg.gradle.project.android.ndkPath=$HOME/android-ndk-custom
             
