@@ -6,7 +6,9 @@
     <color name="control_button_color">#4CC4C4C4</color>
     <color name="control_button_pressed_color">#4D000000</color>
 
-    <color name="minebutton_color">@color/quattro_purple</color>
+    <color name="minebutton_color">#8504C9</color>
+    <color name="minebutton_pressed_color">#5E028F</color>
+
     
     <color name="background_app">#181818</color>
     <color name="divider">@color/background_overlay</color>
