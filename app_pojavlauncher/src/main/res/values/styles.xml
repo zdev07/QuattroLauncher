@@ -10,6 +10,7 @@
         
         <item name="colorPrimary">@color/minebutton_color</item>
         <item name="colorAccent">@color/minebutton_color</item>
+        <item name="colorControlActivated">@color/minebutton_color</item>
         
         <item name="colorControlHighlight">#000000</item>
 
