@@ -2,22 +2,23 @@ workflows:
   android-build:
     name: Quattro Launcher Build
     max_build_duration: 30
-    instance_type: mac_mini_m1
+    instance_type: mac_mini_m2
     environment:
-      groups:
-        - sdk_versions # Optional: for organization
-      vars:
-        PACKAGE_NAME: "zx.offical.quattro"
-      # Specify versions here correctly
       java: 17
-      node: latest
+      vars:
+        NDK_VERSION: "25.2.9519653"
     scripts:
-      - name: Set up NDK and SDK environment
+      - name: Install and Set NDK
         script: | 
-          # You don't need to specify android_sdk in environment; 
-          # it is available by default. We just set the NDK path.
+          # Install the specific NDK version requested
+          echo "y" | sdkmanager --install "ndk;$NDK_VERSION"
+          
+          # Set up local.properties with the correct paths for M2
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-          echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> local.properties
+          echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> local.properties
+          
+          # Optional: Export NDK path to environment for build tools
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> $CM_ENV
       - name: Set executable permissions
         script: chmod +x gradlew
       - name: Build Debug APK
