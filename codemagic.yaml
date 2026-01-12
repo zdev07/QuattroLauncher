@@ -6,26 +6,45 @@ workflows:
     environment:
       java: 17
       vars:
+        # We define a custom NDK path that we KNOW exists
         NDK_VERSION: "25.2.9519653"
+        ANDROID_NDK_HOME: $HOME/android-ndk-custom
     scripts:
-      - name: Install and Set NDK
+      - name: Force Install NDK to Custom Path
         script: | 
-          # Install the specific NDK version requested
+          # 1. Install the NDK using sdkmanager
           echo "y" | sdkmanager --install "ndk;$NDK_VERSION"
           
-          # Set up local.properties with the correct paths for M2
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-          echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> local.properties
+          # 2. Create a symlink from the system path to our custom path to be safe
+          mkdir -p $HOME/android-ndk-custom
+          cp -R $ANDROID_SDK_ROOT/ndk/$NDK_VERSION/* $HOME/android-ndk-custom/
           
-          # Optional: Export NDK path to environment for build tools
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION" >> $CM_ENV
+          # 3. Create the local.properties in BOTH the root and the app folder
+          # Some Pojav versions have sub-projects that need their own local.properties
+          echo "ndk.dir=$HOME/android-ndk-custom" > local.properties
+          echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
+          
+          if [ -d "app_pojavlauncher" ]; then
+            cp local.properties app_pojavlauncher/local.properties
+          fi
+          
+          if [ -d "app" ]; then
+            cp local.properties app/local.properties
+          fi
+
       - name: Set executable permissions
         script: chmod +x gradlew
+        
       - name: Build Debug APK
         script: | 
-          ./gradlew assembleDebug
+          # We pass the NDK path directly into the gradle command to override everything
+          ./gradlew assembleDebug \
+            -Pandroid.builder.sdkDownload=false \
+            -Dorg.gradle.project.android.ndkPath=$HOME/android-ndk-custom
+            
     artifacts:
       - app/build/outputs/apk/**/*.apk
+      - app_pojavlauncher/build/outputs/apk/**/*.apk
     publishing:
       email:
         recipients:
