@@ -9,28 +9,24 @@ workflows:
         # We define a custom NDK path that we KNOW exists
         NDK_VERSION: "25.2.9519653"
         ANDROID_NDK_HOME: $HOME/android-ndk-custom
-    scripts:
-      - name: Force Install NDK to Custom Path
+        scripts:
+      - name: Setup NDK and Build
         script: | 
-          # 1. Install the NDK using sdkmanager
-          echo "y" | sdkmanager --install "ndk;$NDK_VERSION"
+          # 1. Clean up any previous failed attempts
+          rm -f local.properties
           
-          # 2. Create a symlink from the system path to our custom path to be safe
-          mkdir -p $HOME/android-ndk-custom
-          cp -R $ANDROID_SDK_ROOT/ndk/$NDK_VERSION/* $HOME/android-ndk-custom/
+          # 2. Use the sdkmanager to ensure the NDK is installed in the default location
+          # Codemagic M2 usually has NDKs at $ANDROID_SDK_ROOT/ndk/
+          echo "y" | sdkmanager --install "ndk;25.2.9519653"
           
-          # 3. Create the local.properties in BOTH the root and the app folder
-          # Some Pojav versions have sub-projects that need their own local.properties
-          echo "ndk.dir=$HOME/android-ndk-custom" > local.properties
-          echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
+          # 3. Set executable permissions
+          chmod +x gradlew
           
-          if [ -d "app_pojavlauncher" ]; then
-            cp local.properties app_pojavlauncher/local.properties
-          fi
-          
-          if [ -d "app" ]; then
-            cp local.properties app/local.properties
-          fi
+          # 4. Run the build. 
+          # We force Gradle to use the specific version and ignore the 'custom' paths.
+          ./gradlew assembleDebug \
+            -Pandroid.ndkVersion="25.2.9519653" \
+            -Pandroid.builder.sdkDownload=true
 
       - name: Set executable permissions
         script: chmod +x gradlew
