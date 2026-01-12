@@ -8,12 +8,10 @@
         <item name="android:statusBarColor">@color/background_status_bar</item>
         <item name="android:navigationBarColor">@color/background_app</item>
         
-        <item name="colorPrimary">@color/quattro_purple</item>
-        <item name="colorPrimaryDark">@color/quattro_purple_dark</item>
-        <item name="colorAccent">@color/quattro_purple</item>
-        <item name="colorControlActivated">@color/quattro_purple</item>
+        <item name="colorPrimary">@color/minebutton_color</item>
+        <item name="colorAccent">@color/minebutton_color</item>
         
-        <item name="colorControlHighlight">#408504C9</item>
+        <item name="colorControlHighlight">#000000</item>
 
         <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
         <item name="android:textSize">@dimen/_12ssp</item>
