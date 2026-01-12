@@ -35,7 +35,7 @@ QuattroLauncher is built using the Gradle build system. If you wish to contribut
    git clone [https://github.com/zdev07/QuattroLauncher.git](https://github.com/zdev07/QuattroLauncher.git)```
 
 2. **Execute Build:**
-   ```./gradlew :app_pojavlauncher:assembleDebug
+   ```./gradlew :app_pojavlauncher:assembleDebug```
 
 ### Official Release 
 
