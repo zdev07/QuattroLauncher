@@ -1,29 +1,20 @@
 workflows:
   android-build:
     name: Quattro Launcher Build
-    instance_type: mac_mini_m2
-    max_build_duration: 60
+    max_build_duration: 30
+    instance_type: mac_mini_m1
     environment:
-      groups:
-        - keystore_credentials
-      vars:
-        PACKAGE_NAME: "zx.offical.quattro"
-      node: latest
-      java: 17
       android_sdk: 34
       ndk: 25.2.9519653
+      java: 17
     scripts:
-      - name: Set up local.properties
-        script: |
-          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-          echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> local.properties
-      - name: Build Quattro APK
-        script: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+      - name: Set executable permissions
+        script: chmod +x gradlew
+      - name: Build Debug APK
+        script: ./gradlew assembleDebug
     artifacts:
-      - app/build/outputs/apk/debug/*.apk
+      - app/build/outputs/apk/**/*.apk
     publishing:
       email:
         recipients:
-          - funpasscloud518@gmail.com
+          - funpasscloud518@gmail.com  #Change this
