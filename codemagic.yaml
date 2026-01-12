@@ -4,17 +4,28 @@ workflows:
     max_build_duration: 30
     instance_type: mac_mini_m1
     environment:
-      android_sdk: 34
-      ndk: 25.2.9519653
+      groups:
+        - sdk_versions # Optional: for organization
+      vars:
+        PACKAGE_NAME: "zx.offical.quattro"
+      # Specify versions here correctly
       java: 17
+      node: latest
     scripts:
+      - name: Set up NDK and SDK environment
+        script: | 
+          # You don't need to specify android_sdk in environment; 
+          # it is available by default. We just set the NDK path.
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          echo "ndk.dir=$ANDROID_SDK_ROOT/ndk/25.2.9519653" >> local.properties
       - name: Set executable permissions
         script: chmod +x gradlew
       - name: Build Debug APK
-        script: ./gradlew assembleDebug
+        script: | 
+          ./gradlew assembleDebug
     artifacts:
       - app/build/outputs/apk/**/*.apk
     publishing:
       email:
         recipients:
-          - funpasscloud518@gmail.com  #Change this
+          - funpasscloud518@gmail.com
