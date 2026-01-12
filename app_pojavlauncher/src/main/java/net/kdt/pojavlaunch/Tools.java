@@ -101,11 +101,15 @@ import java.util.Map;
 public final class Tools {
     public  static final float BYTE_TO_MB = 1024 * 1024;
     public static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
-    public static String APP_NAME = "PojavLauncher";
+    
+    /** REBRANDED NAME **/
+    public static String APP_NAME = "QuattroLauncher";
 
     public static final Gson GLOBAL_GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    public static final String URL_HOME = "https://pojavlauncherteam.github.io";
+    /** REBRANDED URL **/
+    public static final String URL_HOME = "https://QuattroLauncher.github.io";
+    
     public static String NATIVE_LIB_DIR;
     public static String DIR_DATA; //Initialized later to get context
     public static File DIR_CACHE;
@@ -116,7 +120,10 @@ public final class Tools {
 
     // New since 3.3.1
     public static String DIR_ACCOUNT_NEW;
-    public static String DIR_GAME_HOME = Environment.getExternalStorageDirectory().getAbsolutePath() + "/games/PojavLauncher";
+    
+    /** REBRANDED STORAGE PATH **/
+    public static String DIR_GAME_HOME = Environment.getExternalStorageDirectory().getAbsolutePath() + "/zx/offical/quattro";
+    
     public static String DIR_GAME_NEW;
     public static String GAME_PROFILES_FILE;
 
@@ -138,14 +145,17 @@ public final class Tools {
 
     private static File getPojavStorageRoot(Context ctx) {
         if(SDK_INT >= 29) {
+            // Android 10+ uses Scoped Storage. This will target:
+            // /sdcard/Android/data/zx.offical.quattro/files
             return ctx.getExternalFilesDir(null);
         }else{
-            return new File(Environment.getExternalStorageDirectory(),"games/PojavLauncher");
+            // Legacy path for older Android versions
+            return new File(Environment.getExternalStorageDirectory(),"zx/offical/quattro");
         }
     }
 
     /**
-     * Checks if the Pojav's storage root is accessible and read-writable
+     * Checks if the Launcher's storage root is accessible and read-writable
      * @param context context to get the storage root if it's not set yet
      * @return true if storage is fine, false if storage is not accessible
      */
@@ -156,7 +166,7 @@ public final class Tools {
     }
 
     /**
-     * Checks if the Pojav's storage root is accessible and read-writable. If it's not, starts
+     * Checks if the Launcher's storage root is accessible and read-writable. If it's not, starts
      * the MissingStorageActivity and finishes the supplied activity.
      * @param context the Activity that checks for storage availability
      * @return whether the storage is available or not.
@@ -564,7 +574,7 @@ public final class Tools {
             }
         }
         // Remove the ':' at the end
-        libStr.setLength(libStr.length() - 1);
+        if (libStr.length() > 0) libStr.setLength(libStr.length() - 1);
         return libStr.toString();
     }
 
