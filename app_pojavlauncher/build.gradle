@@ -2,11 +2,10 @@ plugins {
     id 'com.android.application' version '8.7.2'
 }
 
-static def getDate() { return new Date().format('yyyyMMdd') }
-
 static def getDateSeconds() {
-    if (System.getenv("GITHUB_ACTIONS") == "true") {
-        return 9934841 + Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER"))
+    // Generates a unique version code based on time if not on CI
+    if (System.getenv("GITHUB_ACTIONS") == "true" || System.getenv("CODEMAGIC_BUILD_ID") != null) {
+        return (int)(System.currentTimeMillis() / 1000)
     } else {
         return 172005
     }
@@ -35,16 +34,15 @@ android {
         multiDexEnabled true
         resValue 'string', 'curseforge_api_key', getCFApiKey()
         
-        // CRITICAL: Tells the NDK which architectures to pack
         ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            // Forces compilation for the correct mobile architectures
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
     }
 
-    // THIS SECTION IS MISSING IN YOUR CODE
-    // It tells Gradle where the actual Java runtimes and Native Renderers are
     sourceSets {
         main {
+            // Maps the JRE and LTW native libs so they are actually packed into the APK
             jniLibs.srcDirs = ['src/main/jniLibs']
             assets.srcDirs = ['src/main/assets']
         }
@@ -64,6 +62,9 @@ android {
             resValue "string", "app_name", "QuattroLauncher (Debug)"
             applicationIdSuffix '.debug'
             signingConfig signingConfigs.customDebug
+            // Logic must not be shrunk even in debug for Pojav to work
+            minifyEnabled false
+            shrinkResources false
             resValue 'string', 'application_package', 'zx.offical.quattro.debug'
             resValue 'string', 'storageProviderAuthorities', 'zx.offical.quattro.scoped.gamefolder.debug'
             resValue 'string', 'shareProviderAuthority', 'zx.offical.quattro.scoped.controlfolder.debug'
@@ -71,7 +72,7 @@ android {
 
         release {
             resValue "string", "app_name", "QuattroLauncher"
-            // KEEP THESE FALSE to ensure logic doesn't break
+            // CRITICAL: Must be false to prevent 39MB "Ghost APK"
             minifyEnabled false
             shrinkResources false 
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -96,10 +97,10 @@ android {
 
     packagingOptions {
         jniLibs {
+            // Necessary for the launcher to find the LTW and Renderer .so files
             useLegacyPackaging = true
         }
         pickFirst '**/libbytehook.so'
-        // Prevent duplicate file errors
         exclude 'META-INF/DEPENDENCIES'
     }
 
@@ -108,7 +109,6 @@ android {
         buildConfig true
     }
     
-    // Fix for the String formatting errors in your logs
     lintOptions {
         checkReleaseBuilds false
         abortOnError false
@@ -135,12 +135,11 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 }
 
-// Fixed the asset dependency trigger
+// Fixed the asset dependency trigger - forces the JRE/Installer components into the build
 afterEvaluate {
-    if (tasks.findByName("mergeReleaseAssets")) {
-        tasks.mergeReleaseAssets.dependsOn(":forge_installer:jar", ":arc_dns_injector:jar", ":jre_lwjgl3glfw:jar")
-    }
-    if (tasks.findByName("mergeDebugAssets")) {
-        tasks.mergeDebugAssets.dependsOn(":forge_installer:jar", ":arc_dns_injector:jar", ":jre_lwjgl3glfw:jar")
+    tasks.withType(JavaCompile) {
+        if (tasks.findByName(":forge_installer:jar")) dependsOn(":forge_installer:jar")
+        if (tasks.findByName(":arc_dns_injector:jar")) dependsOn(":arc_dns_injector:jar")
+        if (tasks.findByName(":jre_lwjgl3glfw:jar")) dependsOn(":jre_lwjgl3glfw:jar")
     }
 }
