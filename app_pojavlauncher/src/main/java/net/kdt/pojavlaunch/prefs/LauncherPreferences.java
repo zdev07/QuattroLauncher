@@ -34,7 +34,7 @@ public class LauncherPreferences {
     public static String PREF_CUSTOM_JAVA_ARGS;
     public static boolean PREF_FORCE_ENGLISH = false;
     public static final String PREF_VERSION_REPOS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
-    public static boolean PREF_CHECK_LIBRARY_SHA = true;
+    public static boolean PREF_CHECK_LIBRARY_SHA = false;
     public static boolean PREF_DISABLE_GESTURES = false;
     public static boolean PREF_DISABLE_SWAP_HAND = false;
     public static float PREF_MOUSESPEED = 1f;
@@ -42,7 +42,7 @@ public class LauncherPreferences {
     public static String PREF_DEFAULT_RUNTIME;
     public static boolean PREF_SUSTAINED_PERFORMANCE = false;
     public static boolean PREF_VIRTUAL_MOUSE_START = false;
-    public static boolean PREF_ARC_CAPES = false;
+    public static boolean PREF_ARC_CAPES = true;
     public static boolean PREF_USE_ALTERNATE_SURFACE = true;
     public static boolean PREF_JAVA_SANDBOX = true;
     public static float PREF_SCALE_FACTOR = 1f;
@@ -64,7 +64,7 @@ public class LauncherPreferences {
     public static boolean PREF_VERIFY_MANIFEST = true;
     public static String PREF_DOWNLOAD_SOURCE = "default";
     public static boolean PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = false;
-    public static boolean PREF_VSYNC_IN_ZINK = true;
+    public static boolean PREF_VSYNC_IN_ZINK = false;
 
     // REBRAND FIX: Global flag to ensure Demo Mode logic doesn't interfere with UI
     public static boolean PREF_IS_QUATTRO_UNLOCKED = true;
