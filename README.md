@@ -13,7 +13,7 @@
 ## 📖 Introduction
 **QuattroLauncher** is a specialized, community-driven fork designed to bring the complete Minecraft: Java Edition experience to the palm of your hand. By leveraging advanced wrapper technologies and a custom-tuned OpenJDK environment, QuattroLauncher allows users to run desktop-grade Minecraft on Android devices with high stability and optimized frame rates.
 
-Unlike standard mobile versions, QuattroLauncher provides access to the true Java ecosystem, including the ability to play on major servers, use complex redstone mechanics, and experience the latest snapshots (up to 1.21+) as soon as they are released by Mojag.
+Unlike standard mobile versions, QuattroLauncher provides access to the true Java ecosystem, including the ability to play on major servers, use complex redstone mechanics, and experience the latest snapshots (up to 1.21+) as soon as they are released by Mojang.
 
 ---
 
