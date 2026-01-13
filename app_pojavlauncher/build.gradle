@@ -2,8 +2,9 @@ plugins {
     id 'com.android.application' version '8.7.2'
 }
 
+static def getDate() { return new Date().format('yyyyMMdd') }
+
 static def getDateSeconds() {
-    // Generates a unique version code based on time if not on CI
     if (System.getenv("GITHUB_ACTIONS") == "true" || System.getenv("CODEMAGIC_BUILD_ID") != null) {
         return (int)(System.currentTimeMillis() / 1000)
     } else {
@@ -35,16 +36,15 @@ android {
         resValue 'string', 'curseforge_api_key', getCFApiKey()
         
         ndk {
-            // Forces compilation for the correct mobile architectures
             abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
     }
 
     sourceSets {
         main {
-            // Maps the JRE and LTW native libs so they are actually packed into the APK
+            // FIX: Explicitly mapping components folder to ensure JRE is included
             jniLibs.srcDirs = ['src/main/jniLibs']
-            assets.srcDirs = ['src/main/assets']
+            assets.srcDirs = ['src/main/assets', 'src/main/assets/components']
         }
     }
 
@@ -59,10 +59,10 @@ android {
 
     buildTypes {
         debug {
-            resValue "string", "app_name", "QuattroLauncher (Debug)"
+            // Updated App Name for Debug
+            resValue "string", "app_name", "Quattro (Debug)"
             applicationIdSuffix '.debug'
             signingConfig signingConfigs.customDebug
-            // Logic must not be shrunk even in debug for Pojav to work
             minifyEnabled false
             shrinkResources false
             resValue 'string', 'application_package', 'zx.offical.quattro.debug'
@@ -71,8 +71,8 @@ android {
         }
 
         release {
-            resValue "string", "app_name", "QuattroLauncher"
-            // CRITICAL: Must be false to prevent 39MB "Ghost APK"
+            // Updated App Name for Release
+            resValue "string", "app_name", "Quattro"
             minifyEnabled false
             shrinkResources false 
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -97,10 +97,10 @@ android {
 
     packagingOptions {
         jniLibs {
-            // Necessary for the launcher to find the LTW and Renderer .so files
             useLegacyPackaging = true
         }
         pickFirst '**/libbytehook.so'
+        doNotStrip "**/*.so" // FIX: Prevents LTW features from being removed
         exclude 'META-INF/DEPENDENCIES'
     }
 
@@ -135,8 +135,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
 }
 
-// Fixed the asset dependency trigger - forces the JRE/Installer components into the build
 afterEvaluate {
+    // Ensures internal launcher features (Forge/JRE) are merged before APK creation
     tasks.withType(JavaCompile) {
         if (tasks.findByName(":forge_installer:jar")) dependsOn(":forge_installer:jar")
         if (tasks.findByName(":arc_dns_injector:jar")) dependsOn(":arc_dns_injector:jar")
