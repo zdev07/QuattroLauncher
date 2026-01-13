@@ -2,7 +2,6 @@ package net.kdt.pojavlaunch.prefs;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.P;
-
 import static net.kdt.pojavlaunch.Architecture.is32BitsDevice;
 
 import android.app.Activity;
@@ -26,13 +25,13 @@ public class LauncherPreferences {
     public static SharedPreferences DEFAULT_PREF;
     public static String PREF_RENDERER = "opengles2";
 
-	public static boolean PREF_IGNORE_NOTCH = false;
-	public static int PREF_NOTCH_SIZE = 0;
-	public static float PREF_BUTTONSIZE = 100f;
-	public static float PREF_MOUSESCALE = 1f;
-	public static int PREF_LONGPRESS_TRIGGER = 300;
-	public static String PREF_DEFAULTCTRL_PATH = Tools.CTRLDEF_FILE;
-	public static String PREF_CUSTOM_JAVA_ARGS;
+    public static boolean PREF_IGNORE_NOTCH = false;
+    public static int PREF_NOTCH_SIZE = 0;
+    public static float PREF_BUTTONSIZE = 100f;
+    public static float PREF_MOUSESCALE = 1f;
+    public static int PREF_LONGPRESS_TRIGGER = 300;
+    public static String PREF_DEFAULTCTRL_PATH = Tools.CTRLDEF_FILE;
+    public static String PREF_CUSTOM_JAVA_ARGS;
     public static boolean PREF_FORCE_ENGLISH = false;
     public static final String PREF_VERSION_REPOS = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     public static boolean PREF_CHECK_LIBRARY_SHA = true;
@@ -56,7 +55,6 @@ public class LauncherPreferences {
     public static boolean PREF_GYRO_INVERT_Y = false;
 
     public static boolean PREF_FORCE_VSYNC = false;
-
     public static boolean PREF_BUTTON_ALL_CAPS = true;
     public static boolean PREF_DUMP_SHADERS = false;
     public static float PREF_DEADZONE_SCALE = 1f;
@@ -68,9 +66,11 @@ public class LauncherPreferences {
     public static boolean PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = false;
     public static boolean PREF_VSYNC_IN_ZINK = true;
 
+    // REBRAND FIX: Global flag to ensure Demo Mode logic doesn't interfere with UI
+    public static boolean PREF_IS_QUATTRO_UNLOCKED = true;
+
 
     public static void loadPreferences(Context ctx) {
-        //Required for CTRLDEF_FILE and MultiRT
         Tools.initStorageConstants(ctx);
         boolean isDevicePowerful = isDevicePowerful(ctx);
 
@@ -79,8 +79,8 @@ public class LauncherPreferences {
         PREF_MOUSESCALE = DEFAULT_PREF.getInt("mousescale", 100)/100f;
         PREF_MOUSESPEED = ((float)DEFAULT_PREF.getInt("mousespeed",100))/100f;
         PREF_IGNORE_NOTCH = DEFAULT_PREF.getBoolean("ignoreNotch", false);
-		PREF_LONGPRESS_TRIGGER = DEFAULT_PREF.getInt("timeLongPressTrigger", 300);
-		PREF_DEFAULTCTRL_PATH = DEFAULT_PREF.getString("defaultCtrl", Tools.CTRLDEF_FILE);
+        PREF_LONGPRESS_TRIGGER = DEFAULT_PREF.getInt("timeLongPressTrigger", 300);
+        PREF_DEFAULTCTRL_PATH = DEFAULT_PREF.getString("defaultCtrl", Tools.CTRLDEF_FILE);
         PREF_FORCE_ENGLISH = DEFAULT_PREF.getBoolean("force_english", false);
         PREF_CHECK_LIBRARY_SHA = DEFAULT_PREF.getBoolean("checkLibraries",true);
         PREF_DISABLE_GESTURES = DEFAULT_PREF.getBoolean("disableGestures",false);
@@ -113,7 +113,6 @@ public class LauncherPreferences {
         String argLwjglLibname = "-Dorg.lwjgl.opengl.libname=";
         for (String arg : JREUtils.parseJavaArguments(PREF_CUSTOM_JAVA_ARGS)) {
             if (arg.startsWith(argLwjglLibname)) {
-                // purge arg
                 DEFAULT_PREF.edit().putString("javaArgs",
                     PREF_CUSTOM_JAVA_ARGS.replace(arg, "")).apply();
             }
@@ -130,47 +129,28 @@ public class LauncherPreferences {
         }
     }
 
-    /**
-     * This functions aims at finding the best default RAM amount,
-     * according to the RAM amount of the physical device.
-     * Put not enough RAM ? Minecraft will lag and crash.
-     * Put too much RAM ?
-     * The GC will lag, android won't be able to breathe properly.
-     * @param ctx Context needed to get the total memory of the device.
-     * @return The best default value found.
-     */
     private static int findBestRAMAllocation(Context ctx){
         int deviceRam = Tools.getTotalDeviceMemory(ctx);
         if (deviceRam < 1024) return 296;
         if (deviceRam < 1536) return 448;
         if (deviceRam < 2048) return 656;
-        // Limit the max for 32 bits devices more harshly
         if (is32BitsDevice()) return 696;
-
         if (deviceRam < 3064) return 936;
         if (deviceRam < 4096) return 1144;
         if (deviceRam < 6144) return 1536;
-        return 2048; //Default RAM allocation for 64 bits
+        return 2048; 
     }
 
-    /// Find a correct resolution for the device
-    ///
-    /// Some devices are shipped with a ridiculously high resolution, which can cause performance issues
-    /// This function will try to find a resolution that is good enough for the device
     private static int findBestResolution(Context context, boolean isDevicePowerful) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         int minSide = Math.min(metrics.widthPixels, metrics.heightPixels);
         int targetSide = isDevicePowerful ? 1080 : 720;
-        if (minSide <= targetSide) return 100; // No need to scale down
-
+        if (minSide <= targetSide) return 100;
         float ratio = (100f * targetSide / minSide);
-        // The value must match the seekbar values
         int increment = context.getResources().getInteger(R.integer.resolution_seekbar_increment);
         return (int) (Math.ceil(ratio / increment) * increment);
     }
 
-    /// Check if the device is considered powerful.
-    /// Powerful devices will have some energy saving tweaks enabled by default
     private static boolean isDevicePowerful(Context context) {
         if (SDK_INT < Build.VERSION_CODES.Q) return false;
         if (Tools.getTotalDeviceMemory(context) <= 4096) return false;
@@ -193,7 +173,6 @@ public class LauncherPreferences {
         return false;
     }
 
-    /** Compute the notch size to avoid being out of bounds */
     public static void computeNotchSize(Activity activity) {
         if (Build.VERSION.SDK_INT < P) return;
         try {
@@ -203,15 +182,12 @@ public class LauncherPreferences {
             } else {
                 cutout = activity.getWindow().getDecorView().getRootWindowInsets().getDisplayCutout().getBoundingRects().get(0);
             }
-
-            // Notch values are rotation sensitive, handle all cases
             int orientation = activity.getResources().getConfiguration().orientation;
             if (orientation == Configuration.ORIENTATION_PORTRAIT) LauncherPreferences.PREF_NOTCH_SIZE = cutout.height();
             else if (orientation == Configuration.ORIENTATION_LANDSCAPE) LauncherPreferences.PREF_NOTCH_SIZE = cutout.width();
             else LauncherPreferences.PREF_NOTCH_SIZE = Math.min(cutout.width(), cutout.height());
-
         }catch (Exception e){
-            Log.i("NOTCH DETECTION", "No notch detected, or the device if in split screen mode");
+            Log.i("NOTCH DETECTION", "No notch detected");
             LauncherPreferences.PREF_NOTCH_SIZE = -1;
         }
         Tools.updateWindowSize(activity);
