@@ -42,8 +42,7 @@ QuattroLauncher is built using the Gradle build system. If you wish to contribut
 
 For a production-ready APK that is optimized for speed and size, use the release task:
 
-```bash
-./gradlew :app_pojavlauncher:assembleRelease```
+```./gradlew :app_pojavlauncher:assembleRelease```
 
 The final APK will be located in: app_pojavlauncher/build/outputs/apk/release/
 
