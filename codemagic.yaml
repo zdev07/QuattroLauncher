@@ -31,10 +31,9 @@ workflows:
       - name: Set executable permissions
         script: chmod +x gradlew
         
-      - name: Build Debug APK
-        script: | 
-          # We pass the NDK path directly into the gradle command to override everything
-          ./gradlew assembleRelease \
+      - name: Build Android Release
+        script: |
+            ./gradlew :app_pojavlauncher:assembleRelease -x lintVitalRelease
             -Pandroid.builder.sdkDownload=false \
             -Dorg.gradle.project.android.ndkPath=$HOME/android-ndk-custom
             
