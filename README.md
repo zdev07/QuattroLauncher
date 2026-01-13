@@ -55,8 +55,9 @@ Official stable builds and experimental "bleeding-edge" updates are available in
 ### 📜 Credits & License
 
 QuattroLauncher is a fork based on the incredible foundational work of the PojavLauncher team. We owe a debt of gratitude to the original developers and the Boardwalk project.
-•License: This project is licensed under the GNU LGPLv3.
-•Technologies: Built with OpenJDK, LWJGL 3, and GL4ES.
+
+``•License: This project is licensed under the GNU LGPLv3.``
+``•Technologies: Built with OpenJDK, LWJGL 3, and GL4ES.``
 
 <p align="center">
 <strong>Maintained with passion by zdev07</strong>
