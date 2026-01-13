@@ -7,22 +7,23 @@ workflows:
       java: 17
       vars:
         NDK_VERSION: "25.2.9519653"
-        ANDROID_NDK_HOME: $HOME/android-ndk-custom
     scripts:
-      - name: Setup and Build Release
+      - name: Setup and Build
         script: | 
           # 1. Prepare Environment
           rm -f local.properties
           echo "y" | sdkmanager --install "ndk;25.2.9519653"
           chmod +x gradlew
           
-          # 2. Run the Release Build
+          # 2. Run the Debug Build
           ./gradlew :app_pojavlauncher:assembleDebug \
             -Pandroid.ndkVersion="25.2.9519653" \
             -Pandroid.builder.sdkDownload=true
             
     artifacts:
-      - app_pojavlauncher/build/outputs/apk/release/*.apk
+      # FIX: Changed 'release' to '**' to catch APKs regardless of build type
+      # This will find: app_pojavlauncher/build/outputs/apk/debug/*.apk
+      - app_pojavlauncher/build/outputs/apk/**/*.apk
     publishing:
       email:
         recipients:
