@@ -61,7 +61,7 @@ public class LauncherPreferences {
     public static boolean PREF_BIG_CORE_AFFINITY = false;
     public static boolean PREF_ZINK_PREFER_SYSTEM_DRIVER = false;
     
-    public static boolean PREF_VERIFY_MANIFEST = true;
+    public static boolean PREF_VERIFY_MANIFEST = false;
     public static String PREF_DOWNLOAD_SOURCE = "default";
     public static boolean PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = false;
     public static boolean PREF_VSYNC_IN_ZINK = false;
