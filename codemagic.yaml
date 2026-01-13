@@ -12,10 +12,8 @@ workflows:
         script: | 
           # Create the folders if they don't exist
           mkdir -p app_pojavlauncher/src/main/assets/components/jre
-          
           # Download JRE 17 (Required for modern Minecraft versions)
           curl -L https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/17-7639f70/jre17-arm64.tar.xz -o app_pojavlauncher/src/main/assets/components/jre/jre17-arm64.tar.xz
-          
           # Download JRE 8 (Required for older versions)
           curl -L https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre8-8dd333a/jre8-arm64.tar.xz -o app_pojavlauncher/src/main/assets/components/jre/jre8-arm64.tar.xz
 
