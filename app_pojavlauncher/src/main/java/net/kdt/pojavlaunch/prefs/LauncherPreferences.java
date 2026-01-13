@@ -137,14 +137,16 @@ public class LauncherPreferences {
         if (is32BitsDevice()) return 696;
         if (deviceRam < 3064) return 936;
         if (deviceRam < 4096) return 1144;
-        if (deviceRam < 6144) return 1536;
+        if (deviceRam < 6144) return 2048;
+        if (deviceRam < 8192) return 3072;
+        if (deviceRam < 12288) return 6144;
         return 2048; 
     }
 
     private static int findBestResolution(Context context, boolean isDevicePowerful) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         int minSide = Math.min(metrics.widthPixels, metrics.heightPixels);
-        int targetSide = isDevicePowerful ? 1080 : 720;
+        int targetSide = isDevicePowerful ? 720 : 480;
         if (minSide <= targetSide) return 100;
         float ratio = (100f * targetSide / minSide);
         int increment = context.getResources().getInteger(R.integer.resolution_seekbar_increment);
