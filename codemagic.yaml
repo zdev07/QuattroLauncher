@@ -7,19 +7,25 @@ workflows:
       java: 17
       vars:
         NDK_VERSION: "25.2.9519653"
-    scripts:
-      - name: Setup and Build
+        scripts:
+      - name: Download JRE and Native Libs
         script: | 
-          # 1. Prepare Environment
+          # Create the folders if they don't exist
+          mkdir -p app_pojavlauncher/src/main/assets/components/jre
+          
+          # Download JRE 17 (Required for modern Minecraft versions)
+          curl -L https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/17-7639f70/jre17-arm64.tar.xz -o app_pojavlauncher/src/main/assets/components/jre/jre17-arm64.tar.xz
+          
+          # Download JRE 8 (Required for older versions)
+          curl -L https://github.com/PojavLauncherTeam/android-openjdk-build-multiarch/releases/download/jre8-8dd333a/jre8-arm64.tar.xz -o app_pojavlauncher/src/main/assets/components/jre/jre8-arm64.tar.xz
+
+      - name: Setup and Build
+        script: |
           rm -f local.properties
           echo "y" | sdkmanager --install "ndk;25.2.9519653"
           chmod +x gradlew
-          
-          # 2. Run the Debug Build
-          ./gradlew :app_pojavlauncher:assembleDebug \
-            -Pandroid.ndkVersion="25.2.9519653" \
-            -Pandroid.builder.sdkDownload=true
-            
+          ./gradlew :app_pojavlauncher:assembleDebug -Pandroid.ndkVersion="25.2.9519653"
+
     artifacts:
       # FIX: Changed 'release' to '**' to catch APKs regardless of build type
       # This will find: app_pojavlauncher/build/outputs/apk/debug/*.apk
