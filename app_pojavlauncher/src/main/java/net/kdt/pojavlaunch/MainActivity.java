@@ -22,6 +22,7 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -31,6 +32,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -88,6 +90,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     private GyroControl mGyroControl = null;
     private ControlLayout mControlLayout;
     private HotbarView mHotbarView;
+    private WifiManager.WifiLock mWifiLock;
 
     MinecraftProfile minecraftProfile;
 
@@ -102,11 +105,24 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // QUATTRO OPTIMIZATION: Force High Refresh Rate (120Hz)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowManager.LayoutParams params = getWindow().getAttributes();
+            params.preferredDisplayModeId = 0; 
+            getWindow().setAttributes(params);
+        }
+
+        // QUATTRO OPTIMIZATION: Setup WiFi Lock for Multiplayer
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null) {
+            mWifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "QuattroNetLock");
+        }
+
         minecraftProfile = LauncherProfiles.getCurrentProfile();
         MCOptionUtils.load(Tools.getGameDirPath(minecraftProfile).getAbsolutePath());
 
         Intent gameServiceIntent = new Intent(this, GameService.class);
-        // Start the service a bit early
         ContextCompat.startForegroundService(this, gameServiceIntent);
         initLayout(R.layout.activity_basemain);
         CallbackBridge.addGrabListener(touchpad);
@@ -114,11 +130,9 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
         mGyroControl = new GyroControl(this);
 
-        // Enabling this on TextureView results in a broken white result
         if(PREF_USE_ALTERNATE_SURFACE) getWindow().setBackgroundDrawable(null);
         else getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
 
-        // Set the sustained performance mode for available APIs
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             getWindow().setSustainedPerformanceMode(PREF_SUSTAINED_PERFORMANCE);
 
@@ -136,15 +150,10 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
             }
         };
 
-        // Recompute the gui scale when options are changed
         MCOptionUtils.MCOptionListener optionListener = MCOptionUtils::getMcScale;
         MCOptionUtils.addMCOptionListener(optionListener);
         mControlLayout.setModifiable(false);
-
-        // Set the activity for the executor. Must do this here, or else Tools.showErrorRemote() may not
-        // execute the correct method
         ContextExecutor.setActivity(this);
-        //Now, attach to the service. The game will only start when this happens, to make sure that we know the right state.
         bindService(gameServiceIntent, this, 0);
     }
 
@@ -161,18 +170,14 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
             if(!latestLogFile.exists() && !latestLogFile.createNewFile())
                 throw new IOException("Failed to create a new log file");
             Logger.begin(latestLogFile.getAbsolutePath());
-            // FIXME: is it safe for multi thread?
             GLOBAL_CLIPBOARD = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             touchCharInput.setCharacterSender(new LwjglCharSender());
 
             if(minecraftProfile.pojavRendererName != null) {
-                Log.i("RdrDebug","__P_renderer="+minecraftProfile.pojavRendererName);
                 Tools.LOCAL_RENDERER = minecraftProfile.pojavRendererName;
             }
 
-            setTitle("Minecraft " + minecraftProfile.lastVersionId);
-
-            // Minecraft 1.13+
+            setTitle("QuattroLauncher - " + minecraftProfile.lastVersionId);
 
             String version = getIntent().getStringExtra(INTENT_MINECRAFT_VERSION);
             version = version == null ? minecraftProfile.lastVersionId : version;
@@ -185,8 +190,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
             windowWidth = Tools.getDisplayFriendlyRes(currentDisplayMetrics.widthPixels, 1f);
             windowHeight = Tools.getDisplayFriendlyRes(currentDisplayMetrics.heightPixels, 1f);
 
-
-            // Menu
             gameActionArrayAdapter = new ArrayAdapter<>(this,
                     android.R.layout.simple_list_item_1, getResources().getStringArray(R.array.menu_ingame));
             gameActionClickListener = (parent, view, position, id) -> {
@@ -206,11 +209,9 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
             final String finalVersion = version;
             minecraftGLView.setSurfaceReadyListener(() -> {
                 try {
-                    // Setup virtual mouse right before launching
                     if (PREF_VIRTUAL_MOUSE_START) {
                         touchpad.post(() -> touchpad.switchState());
                     }
-
                     runCraft(finalVersion, mVersionInfo);
                 }catch (Throwable e){
                     Tools.showErrorRemote(e);
@@ -223,14 +224,12 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     private void loadControls() {
         try {
-            // Load keys
             mControlLayout.loadLayout(
                     minecraftProfile.controlFile == null
                             ? LauncherPreferences.PREF_DEFAULTCTRL_PATH
                             : Tools.CTRLMAP_PATH + "/" + minecraftProfile.controlFile);
         } catch(IOException e) {
             try {
-                Log.w("MainActivity", "Unable to load the control file, loading the default now", e);
                 mControlLayout.loadLayout(Tools.CTRLDEF_FILE);
             } catch (IOException ioException) {
                 Tools.showError(this, ioException);
@@ -244,7 +243,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     @Override
     public void onAttachedToWindow() {
-        // Post to get the correct display dimensions after layout.
         LauncherPreferences.computeNotchSize(this);
         mControlLayout.post(()->{
             Tools.getDisplayMetrics(this);
@@ -252,7 +250,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         });
     }
 
-    /** Boilerplate binding */
     private void bindValues(){
         mControlLayout = findViewById(R.id.main_control_layout);
         minecraftGLView = findViewById(R.id.main_game_render_view);
@@ -260,7 +257,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         drawerLayout = findViewById(R.id.main_drawer_options);
         navDrawer = findViewById(R.id.main_navigation_view);
         loggerView = findViewById(R.id.mainLoggerView);
-        mControlLayout = findViewById(R.id.main_control_layout);
         touchCharInput = findViewById(R.id.mainTouchCharInput);
         mDrawerPullButton = findViewById(R.id.drawer_button);
         mHotbarView = findViewById(R.id.hotbar_view);
@@ -270,12 +266,14 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     public void onResume() {
         super.onResume();
         if(PREF_ENABLE_GYRO) mGyroControl.enable();
+        if(mWifiLock != null && !mWifiLock.isHeld()) mWifiLock.acquire(); // Network Opti
         CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 1);
     }
 
     @Override
     protected void onPause() {
         mGyroControl.disable();
+        if (mWifiLock != null && mWifiLock.isHeld()) mWifiLock.release(); // Save battery when paused
         if (CallbackBridge.isGrabbing()){
             sendKeyPress(LwjglGlfwKeycode.GLFW_KEY_ESCAPE);
         }
@@ -309,14 +307,9 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-
         if(mGyroControl != null) mGyroControl.updateOrientation();
-        // Layout resize is practically guaranteed on a configuration change, and `onConfigurationChanged`
-        // does not implicitly start a layout. So, request a layout and expect the screen dimensions to be valid after the]
-        // post.
         mControlLayout.requestLayout();
         mControlLayout.post(()->{
-            // Child of mControlLayout, so refreshing size here is correct
             minecraftGLView.refreshSize();
             Tools.updateWindowSize(this);
             mControlLayout.refreshControlButtonPositions();
@@ -326,18 +319,14 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        if(minecraftGLView != null)  // Useful when backing out of the app
+        if(minecraftGLView != null) 
             Tools.MAIN_HANDLER.postDelayed(() -> minecraftGLView.refreshSize(), 500);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == 1 && resultCode == Activity.RESULT_OK) {
-            // Reload PREF_DEFAULTCTRL_PATH
-            // If the storage root got unmounted/unreadable we won't be able to load the file anyway,
-            // and MissingStorageActivity will be started.
             if(!Tools.checkStorageRoot(this)) return;
             LauncherPreferences.loadPreferences(getApplicationContext());
             try {
@@ -355,19 +344,16 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         if(!Tools.checkRendererCompatible(this, Tools.LOCAL_RENDERER)) {
             Tools.RenderersList renderersList = Tools.getCompatibleRenderers(this);
             String firstCompatibleRenderer = renderersList.rendererIds.get(0);
-            Log.w("runCraft","Incompatible renderer "+Tools.LOCAL_RENDERER+ " will be replaced with "+firstCompatibleRenderer);
             Tools.LOCAL_RENDERER = firstCompatibleRenderer;
             Tools.releaseRenderersCache();
         }
         MinecraftAccount minecraftAccount = PojavProfile.getCurrentProfileContent(this, null);
-        Logger.appendToLog("--------- Starting game with Launcher Debug!");
         Tools.printLauncherInfo(versionId, Tools.isValidString(minecraftProfile.javaArgs) ? minecraftProfile.javaArgs : LauncherPreferences.PREF_CUSTOM_JAVA_ARGS);
         JREUtils.redirectAndPrintJRELog();
         LauncherProfiles.load();
         int requiredJavaVersion = 8;
         if(version.javaVersion != null) requiredJavaVersion = version.javaVersion.majorVersion;
         Tools.launchMinecraft(this, minecraftAccount, minecraftProfile, versionId, requiredJavaVersion);
-        //Note that we actually stall in the above function, even if the game crashes. But let's be safe.
         Tools.runOnUiThread(()-> mServiceBinder.isActive = false);
     }
 
@@ -381,7 +367,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
     boolean isInEditor;
     private void openCustomControls() {
         if(ingameControlsEditorListener == null || ingameControlsEditorArrayAdapter == null) return;
-
         mControlLayout.setModifiable(true);
         navDrawer.setAdapter(ingameControlsEditorArrayAdapter);
         navDrawer.setOnItemClickListener(ingameControlsEditorListener);
@@ -418,7 +403,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     public static void toggleMouse(Context ctx) {
         if (CallbackBridge.isGrabbing()) return;
-
         Toast.makeText(ctx, touchpad.switchState()
                         ? R.string.control_mouseon : R.string.control_mouseoff,
                 Toast.LENGTH_SHORT).show();
@@ -436,7 +420,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         boolean handleEvent;
         if(!(handleEvent = minecraftGLView.processKeyEvent(event))) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK && !touchCharInput.isEnabled()) {
-                if(event.getAction() != KeyEvent.ACTION_UP) return true; // We eat it anyway
+                if(event.getAction() != KeyEvent.ACTION_UP) return true;
                 sendKeyPress(LwjglGlfwKeycode.GLFW_KEY_ESCAPE);
                 return true;
             }
@@ -450,7 +434,7 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     @Keep
     public static void openLink(String link) {
-        Context ctx = touchpad.getContext(); // no more better way to obtain a context statically
+        Context ctx = touchpad.getContext();
         ((Activity)ctx).runOnUiThread(() -> {
             try {
                 if(link.startsWith("file:")) {
@@ -469,9 +453,9 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
         });
     }
 
-    @SuppressWarnings("unused") //TODO: actually use it
+    @SuppressWarnings("unused")
     public static void openPath(String path) {
-        Context ctx = touchpad.getContext(); // no more better way to obtain a context statically
+        Context ctx = touchpad.getContext();
         ((Activity)ctx).runOnUiThread(() -> {
             try {
                 Tools.openPath(ctx, new File(path), false);
@@ -490,7 +474,6 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
                 return;
             }
             ClipData.Item firstClipItem = clipData.getItemAt(0);
-            //TODO: coerce to HTML if the clip item is styled
             CharSequence clipItemText = firstClipItem.getText();
             if(clipItemText == null) {
                 AWTInputBridge.nativeClipboardReceived(null, null);
@@ -551,20 +534,11 @@ public class MainActivity extends BaseActivity implements ControlButtonMenuListe
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-
     }
 
-    /*
-     * Android 14 (or some devices, at least) seems to dispatch the the captured mouse events as trackball events
-     * due to a bug(?) somewhere(????)
-     */
     @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean checkCaptureDispatchConditions(MotionEvent event) {
         int eventSource = event.getSource();
-        // On my device, the mouse sends events as a relative mouse device.
-        // Not comparing with == here because apparently `eventSource` is a mask that can
-        // sometimes indicate multiple sources, like in the case of InputDevice.SOURCE_TOUCHPAD
-        // (which is *also* an InputDevice.SOURCE_MOUSE when controlling a cursor)
         return (eventSource & InputDevice.SOURCE_MOUSE_RELATIVE) != 0 ||
                 (eventSource & InputDevice.SOURCE_MOUSE) != 0;
     }
