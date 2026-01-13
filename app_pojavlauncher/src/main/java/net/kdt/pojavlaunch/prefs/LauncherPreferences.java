@@ -65,7 +65,7 @@ public class LauncherPreferences {
     public static String PREF_DOWNLOAD_SOURCE = "default";
     public static boolean PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = false;
     public static boolean PREF_VSYNC_IN_ZINK = false;
-    public static boolean PREF_USE_ALTERNATE_SURFACE = true; // Crucial for touch latency
+     // Crucial for touch latency
 
     // REBRAND FIX: Global flag to ensure Demo Mode logic doesn't interfere with UI
     public static boolean PREF_IS_QUATTRO_UNLOCKED = true;
