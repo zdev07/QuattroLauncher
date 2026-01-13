@@ -17,7 +17,7 @@ workflows:
           chmod +x gradlew
           
           # 2. Run the Release Build
-          ./gradlew :app_pojavlauncher:assembleRelease -x lintVitalRelease \
+          ./gradlew :app_pojavlauncher:assembleDebug \
             -Pandroid.ndkVersion="25.2.9519653" \
             -Pandroid.builder.sdkDownload=true
             
