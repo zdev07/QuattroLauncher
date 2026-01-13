@@ -23,7 +23,7 @@ public class LauncherPreferences {
     public static final String PREF_KEY_SKIP_NOTIFICATION_CHECK = "skipNotificationPermissionCheck";
 
     public static SharedPreferences DEFAULT_PREF;
-    public static String PREF_RENDERER = "opengles2";
+    public static String PREF_RENDERER = "gl_ltw";
 
     public static boolean PREF_IGNORE_NOTCH = false;
     public static int PREF_NOTCH_SIZE = 0;
@@ -40,7 +40,7 @@ public class LauncherPreferences {
     public static float PREF_MOUSESPEED = 1f;
     public static int PREF_RAM_ALLOCATION;
     public static String PREF_DEFAULT_RUNTIME;
-    public static boolean PREF_SUSTAINED_PERFORMANCE = false;
+    public static boolean PREF_SUSTAINED_PERFORMANCE = true;
     public static boolean PREF_VIRTUAL_MOUSE_START = false;
     public static boolean PREF_ARC_CAPES = true;
     public static boolean PREF_USE_ALTERNATE_SURFACE = true;
@@ -65,6 +65,7 @@ public class LauncherPreferences {
     public static String PREF_DOWNLOAD_SOURCE = "default";
     public static boolean PREF_SKIP_NOTIFICATION_PERMISSION_CHECK = false;
     public static boolean PREF_VSYNC_IN_ZINK = false;
+    public static boolean PREF_USE_ALTERNATE_SURFACE = true; // Crucial for touch latency
 
     // REBRAND FIX: Global flag to ensure Demo Mode logic doesn't interfere with UI
     public static boolean PREF_IS_QUATTRO_UNLOCKED = true;
@@ -131,7 +132,7 @@ public class LauncherPreferences {
 
     private static int findBestRAMAllocation(Context ctx){
         int deviceRam = Tools.getTotalDeviceMemory(ctx);
-        if (deviceRam < 1024) return 296;
+        if (deviceRam < 1024) return 512;
         if (deviceRam < 1536) return 448;
         if (deviceRam < 2048) return 656;
         if (is32BitsDevice()) return 696;
@@ -146,7 +147,7 @@ public class LauncherPreferences {
     private static int findBestResolution(Context context, boolean isDevicePowerful) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         int minSide = Math.min(metrics.widthPixels, metrics.heightPixels);
-        int targetSide = isDevicePowerful ? 720 : 480;
+        int targetSide = isDevicePowerful ? 1440 : 720;
         if (minSide <= targetSide) return 100;
         float ratio = (100f * targetSide / minSide);
         int increment = context.getResources().getInteger(R.integer.resolution_seekbar_increment);
