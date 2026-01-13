@@ -6,10 +6,9 @@ workflows:
     environment:
       java: 17
       vars:
-        # We define a custom NDK path that we KNOW exists
         NDK_VERSION: "25.2.9519653"
         ANDROID_NDK_HOME: $HOME/android-ndk-custom
-        scripts:
+    scripts:
       - name: Setup and Build Release
         script: | 
           # 1. Prepare Environment
@@ -18,14 +17,12 @@ workflows:
           chmod +x gradlew
           
           # 2. Run the Release Build
-          # The '\' at the end of the lines is CRITICAL
           ./gradlew :app_pojavlauncher:assembleRelease -x lintVitalRelease \
             -Pandroid.ndkVersion="25.2.9519653" \
             -Pandroid.builder.sdkDownload=true
-
+            
     artifacts:
-      - app/build/outputs/apk/**/*.apk
-      - app_pojavlauncher/build/outputs/apk/**/*.apk
+      - app_pojavlauncher/build/outputs/apk/release/*.apk
     publishing:
       email:
         recipients:
