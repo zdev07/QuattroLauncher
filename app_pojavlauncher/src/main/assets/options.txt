@@ -9,7 +9,7 @@ particles:1
 bobView:false
 anaglyph3d:false
 advancedOpengl:false
-maxFps:260
+maxFps:360
 fboEnable:true
 difficulty:2
 fancyGraphics:false
@@ -27,7 +27,7 @@ snooperEnabled:true
 fullscreen:true
 enableVsync:false
 hideServerAddress:false
-advancedItemTooltips:false
+advancedItemTooltips:true
 pauseOnLostFocus:true
 showCape:true
 touchscreen:false
