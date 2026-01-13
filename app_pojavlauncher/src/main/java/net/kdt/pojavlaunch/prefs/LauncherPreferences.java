@@ -23,7 +23,7 @@ public class LauncherPreferences {
     public static final String PREF_KEY_SKIP_NOTIFICATION_CHECK = "skipNotificationPermissionCheck";
 
     public static SharedPreferences DEFAULT_PREF;
-    public static String PREF_RENDERER = "gles-2";
+    public static String PREF_RENDERER = "opengles2";
 
     public static boolean PREF_IGNORE_NOTCH = false;
     public static int PREF_NOTCH_SIZE = 0;
