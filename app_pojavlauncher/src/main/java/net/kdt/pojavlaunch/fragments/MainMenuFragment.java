@@ -53,27 +53,22 @@ public class MainMenuFragment extends Fragment {
         mNewsButton.setOnClickListener(v -> Tools.openURL(requireActivity(), Tools.URL_HOME));
         mDiscordButton.setOnClickListener(v -> Tools.openURL(requireActivity(), getString(R.string.discord_invite)));
         mCustomControlButton.setOnClickListener(v -> startActivity(new Intent(requireContext(), CustomControlsActivity.class)));
+        
+        // REBRAND FIX: Allow Install Jar even in Demo/Local mode
         mInstallJarButton.setOnClickListener(v -> runInstallerWithConfirmation(false));
         mInstallJarButton.setOnLongClickListener(v->{
             runInstallerWithConfirmation(true);
             return true;
         });
+        
         mEditProfileButton.setOnClickListener(v -> mVersionSpinner.openProfileEditor(requireActivity()));
-
         mPlayButton.setOnClickListener(v -> ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true));
-
         mShareLogsButton.setOnClickListener((v) -> shareLog(requireContext()));
 
+        // REBRAND FIX: Always allow opening the directory
         mOpenDirectoryButton.setOnClickListener((v)-> {
-            Tools.switchDemo(Tools.isDemoProfile(v.getContext())); // avoid switching accounts being able to access
-            if(Tools.isDemoProfile(v.getContext())){
-                Toast.makeText(v.getContext(), R.string.toast_not_available_demo, Toast.LENGTH_LONG).show();
-                return;
-            }
-
             openPath(v.getContext(), getCurrentProfileDirectory(), false);
         });
-
 
         mNewsButton.setOnLongClickListener((v)->{
             Tools.swapFragment(requireActivity(), GamepadMapperFragment.class, GamepadMapperFragment.TAG, null);
@@ -97,12 +92,7 @@ public class MainMenuFragment extends Fragment {
     }
 
     private void runInstallerWithConfirmation(boolean isCustomArgs) {
-        // avoid using custom installers to install a version
-        if(Tools.isLocalProfile(requireContext()) || Tools.isDemoProfile(requireContext())){
-            Toast.makeText(requireContext(), R.string.toast_not_available_demo, Toast.LENGTH_LONG).show();
-            return;
-        }
-
+        // REBRAND FIX: Removed the check for Local/Demo profiles to unlock modding
         if (ProgressKeeper.getTaskCount() == 0)
             Tools.installMod(requireActivity(), isCustomArgs);
         else
