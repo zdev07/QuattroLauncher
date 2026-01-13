@@ -9,34 +9,20 @@ workflows:
         # We define a custom NDK path that we KNOW exists
         NDK_VERSION: "25.2.9519653"
         ANDROID_NDK_HOME: $HOME/android-ndk-custom
-    scripts:
-      - name: Setup NDK and Build
+        scripts:
+      - name: Setup and Build Release
         script: | 
-          # 1. Clean up any previous failed attempts
+          # 1. Prepare Environment
           rm -f local.properties
-          
-          # 2. Use the sdkmanager to ensure the NDK is installed in the default location
-          # Codemagic M2 usually has NDKs at $ANDROID_SDK_ROOT/ndk/
           echo "y" | sdkmanager --install "ndk;25.2.9519653"
-          
-          # 3. Set executable permissions
           chmod +x gradlew
           
-          # 4. Run the build. 
-          # We force Gradle to use the specific version and ignore the 'custom' paths.
-          ./gradlew assembleDebug \
+          # 2. Run the Release Build
+          # The '\' at the end of the lines is CRITICAL
+          ./gradlew :app_pojavlauncher:assembleRelease -x lintVitalRelease \
             -Pandroid.ndkVersion="25.2.9519653" \
             -Pandroid.builder.sdkDownload=true
 
-      - name: Set executable permissions
-        script: chmod +x gradlew
-        
-      - name: Build Android Release
-        script: |
-            ./gradlew :app_pojavlauncher:assembleRelease -x lintVitalRelease
-            -Pandroid.builder.sdkDownload=false \
-            -Dorg.gradle.project.android.ndkPath=$HOME/android-ndk-custom
-            
     artifacts:
       - app/build/outputs/apk/**/*.apk
       - app_pojavlauncher/build/outputs/apk/**/*.apk
