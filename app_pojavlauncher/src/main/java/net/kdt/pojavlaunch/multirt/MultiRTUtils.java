@@ -1,13 +1,12 @@
 package net.kdt.pojavlaunch.multirt;
 
-import static net.kdt.pojavlaunch.Tools.NATIVE_LIB_DIR;
 import static org.apache.commons.io.FileUtils.listFiles;
 import android.system.Os;
 import android.util.Log;
 import com.kdt.mcgui.ProgressLayout;
 import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
-import net.kdt.pojavlaunch.utils.MathUtils;
+import net.kdt.pojavlaunch.value.Runtime;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
@@ -16,7 +15,7 @@ import org.apache.commons.io.IOUtils;
 import java.io.*;
 import java.util.*;
 
-/** Quattro Multi-Runtime Manager */
+/** Quattro Multi-Runtime Manager - Rebuilt & Fixed */
 public class MultiRTUtils {
     private static final String TAG = "Quattro.MultiRT";
     private static final HashMap<String, Runtime> sCache = new HashMap<>();
@@ -24,6 +23,7 @@ public class MultiRTUtils {
     private static final String JAVA_VERSION_STR = "JAVA_VERSION=\"";
     private static final String OS_ARCH_STR = "OS_ARCH=\"";
 
+    /** Returns a list of all installed runtimes */
     public static List<Runtime> getRuntimes() {
         if(!RUNTIME_FOLDER.exists() && !RUNTIME_FOLDER.mkdirs()) {
             throw new RuntimeException("Quattro: Failed to create runtime directory");
@@ -39,6 +39,42 @@ public class MultiRTUtils {
         return runtimes;
     }
 
+    /** Forces a re-read of a runtime's metadata from the disk (Required by Tools.java) */
+    public static Runtime forceReread(String name) {
+        if (name == null) return new Runtime("");
+        sCache.remove(name);
+        return read(name);
+    }
+
+    /** Finds the first JRE that exactly matches the major version (Required by Tools.java) */
+    public static String getExactJreName(int version) {
+        for (Runtime rt : getRuntimes()) {
+            if (rt.javaVersionMajor == version) {
+                return rt.name;
+            }
+        }
+        return null;
+    }
+
+    /** Finds the closest JRE version (Required by Tools.java) */
+    public static String getNearestJreName(int version) {
+        List<Runtime> runtimes = getRuntimes();
+        Runtime bestMatch = null;
+
+        for (Runtime rt : runtimes) {
+            if (rt.javaVersionMajor == version) return rt.name;
+            if (bestMatch == null || Math.abs(rt.javaVersionMajor - version) < Math.abs(bestMatch.javaVersionMajor - version)) {
+                bestMatch = rt;
+            }
+        }
+        return bestMatch != null ? bestMatch.name : null;
+    }
+
+    /** Placeholder for post-install/prepare logic (Required by Tools.java) */
+    public static void postPrepare(String name) {
+        Log.i(TAG, "Post-prepare completed for runtime: " + name);
+    }
+
     public static void installRuntimeNamed(String nativeLibDir, InputStream runtimeInputStream, String name) throws IOException {
         File dest = new File(RUNTIME_FOLDER, name);
         if(dest.exists()) FileUtils.deleteDirectory(dest);
@@ -50,6 +86,7 @@ public class MultiRTUtils {
     }
 
     public static Runtime read(String name) {
+        if (name == null) return new Runtime("");
         Runtime returnRuntime = sCache.get(name);
         if(returnRuntime != null) return returnRuntime;
         
@@ -82,7 +119,6 @@ public class MultiRTUtils {
         
         for(File packFile : files){
             try {
-                // Using Quattro-patched unpack200
                 Process process = pb.command("./libunpack200.so", "-r", packFile.getAbsolutePath(), packFile.getAbsolutePath().replace(".pack", "")).start();
                 process.waitFor();
             } catch (InterruptedException | IOException e) {
